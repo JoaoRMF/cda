@@ -14,33 +14,64 @@
  *  * See the License for the specific language governing permissions and
  *
  */
-
-/*!
- * Copyright 2002 - 2017 Webdetails, a Hitachi Vantara company. All rights reserved.
- *
- * This software was developed by Webdetails and is provided under the terms
- * of the Mozilla Public License, Version 2.0, or any later version. You may not use
- * this file except in compliance with the license. If you need a copy of the license,
- * please go to  http://mozilla.org/MPL/2.0/. The Initial Developer is Webdetails.
- *
- * Software distributed under the Mozilla Public License is distributed on an "AS IS"
- * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. Please refer to
- * the license for the specific language governing your rights and limitations.
- */
-
 package pt.webdetails.cda.connections.dataservices;
 
+import org.apache.commons.lang.StringUtils;
 import org.dom4j.Element;
 
+import java.util.List;
+import java.util.Properties;
+
 public class DataservicesConnectionInfo {
-  private String dataServicesConnectionString; //????
+
+  private String driver;
+  private String url;
+  private Properties properties;
 
   public DataservicesConnectionInfo( final Element connection ) {
-    dataServicesConnectionString = ( (String) connection.selectObject( "string(./ConnectionString)" ) );
+
+    final String driver = (String) connection.selectObject( "string(./Driver)" );
+    final String url = (String) connection.selectObject( "string(./Url)" );
+
+    if ( StringUtils.isEmpty( driver ) ) {
+      throw new IllegalStateException( "A driver is mandatory" );
+    }
+    if ( StringUtils.isEmpty( url ) ) {
+      throw new IllegalStateException( "A url is mandatory" );
+    }
+
+    setDriver( driver );
+    setUrl( url );
+
+    properties = new Properties();
+
+    final List<?> list = connection.elements( "Property" );
+    for ( int i = 0; i < list.size(); i++ ) {
+      final Element childElement = (Element) list.get( i );
+      final String name = childElement.attributeValue( "name" );
+      final String text = childElement.getText();
+      properties.put( name, text );
+    }
   }
 
-  public String getDataServicesConnectionString() {
-    return dataServicesConnectionString;
+  public Properties getProperties() {
+    return properties;
+  }
+
+  public String getDriver() {
+    return driver;
+  }
+
+  public void setDriver( final String driver ) {
+    this.driver = driver;
+  }
+
+  public String getUrl() {
+    return url;
+  }
+
+  public void setUrl( final String url ) {
+    this.url = url;
   }
 
   public boolean equals( final Object o ) {
@@ -51,11 +82,12 @@ public class DataservicesConnectionInfo {
       return false;
     }
 
-    final DataservicesConnectionInfo
-      that = (DataservicesConnectionInfo) o;
+    final DataservicesConnectionInfo that = (DataservicesConnectionInfo) o;
 
-    if ( dataServicesConnectionString != null ? !dataServicesConnectionString
-      .equals( that.dataServicesConnectionString ) : that.dataServicesConnectionString != null ) {
+    if ( driver != null ? !driver.equals( that.driver ) : that.driver != null ) {
+      return false;
+    }
+    if ( url != null ? !url.equals( that.url ) : that.url != null ) {
       return false;
     }
 
@@ -63,6 +95,8 @@ public class DataservicesConnectionInfo {
   }
 
   public int hashCode() {
-    return dataServicesConnectionString != null ? dataServicesConnectionString.hashCode() : 0;
+    int result = driver != null ? driver.hashCode() : 0;
+    result = 31 * result + ( url != null ? url.hashCode() : 0 );
+    return result;
   }
 }

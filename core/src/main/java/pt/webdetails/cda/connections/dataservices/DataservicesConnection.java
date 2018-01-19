@@ -16,16 +16,28 @@
  */
 package pt.webdetails.cda.connections.dataservices;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.dom4j.Element;
+import org.pentaho.reporting.engine.classic.core.modules.misc.datafactory.sql.ConnectionProvider;
+import org.pentaho.reporting.engine.classic.core.modules.misc.datafactory.sql.DriverConnectionProvider;
 import pt.webdetails.cda.connections.AbstractConnection;
 import pt.webdetails.cda.connections.ConnectionCatalog;
 import pt.webdetails.cda.connections.InvalidConnectionException;
 import pt.webdetails.cda.dataaccess.PropertyDescriptor;
+import pt.webdetails.cda.utils.Util;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Properties;
 
 public class DataservicesConnection extends AbstractConnection {
 
+  private static final Log logger = LogFactory.getLog( DataservicesConnection.class );
+  public static final String TYPE = "dataservices";
   private DataservicesConnectionInfo connectionInfo;
 
   public DataservicesConnection( final Element connection ) throws InvalidConnectionException {
@@ -35,16 +47,63 @@ public class DataservicesConnection extends AbstractConnection {
   public DataservicesConnection() {
   }
 
-  public ConnectionCatalog.ConnectionType getGenericType() {
+  @Override public ConnectionCatalog.ConnectionType getGenericType() {
     return ConnectionCatalog.ConnectionType.DATASERVICES;
   }
 
+  @Override
   protected void initializeConnection( final Element connection ) throws InvalidConnectionException {
     connectionInfo = new DataservicesConnectionInfo( connection );
   }
 
+  @Override
   public String getType() {
-    return "dataservices";
+    return TYPE;
+  }
+
+  public ConnectionProvider getInitializedConnectionProvider() throws InvalidConnectionException {
+
+    logger.debug( "Creating new dataservices connection" );
+
+    final DriverConnectionProvider connectionProvider = new DriverConnectionProvider();
+    connectionProvider.setDriver( "org.pentaho.di.trans.dataservice.jdbc.ThinDriver" );
+    connectionProvider.setUrl( "jdbc:pdi://localhost:8080/pentaho/kettle?local=true" );
+
+    final Properties properties = connectionInfo.getProperties();
+    final Enumeration<Object> keys = properties.keys();
+    while ( keys.hasMoreElements() ) {
+      final String key = (String) keys.nextElement();
+      final String value = properties.getProperty( key );
+      connectionProvider.setProperty( key, value );
+    }
+
+    logger.debug( "Opening connection" );
+    try {
+      final Connection connection = connectionProvider.createConnection( null, null );
+      connection.close();
+    } catch ( SQLException e ) {
+      throw new InvalidConnectionException( "DataservicesConnection: Found SQLException: " + Util.getExceptionDescription( e ), e );
+    }
+
+    logger.debug( "Connection opened" );
+
+    return connectionProvider;
+  }
+
+  @Override
+  public List<PropertyDescriptor> getProperties() {
+    final List<PropertyDescriptor> properties = new ArrayList<PropertyDescriptor>();
+    properties.add(new PropertyDescriptor( "driver", PropertyDescriptor.Type.STRING, PropertyDescriptor.Placement.CHILD ) );
+    properties.add(new PropertyDescriptor( "url", PropertyDescriptor.Type.STRING, PropertyDescriptor.Placement.CHILD ) );
+    return properties;
+  }
+
+  public String getTypeForFile() {
+    return "dataservices.dataservices";
+  }
+
+  public DataservicesConnectionInfo getConnectionInfo() {
+    return connectionInfo;
   }
 
   public boolean equals( final Object o ) {
@@ -55,8 +114,7 @@ public class DataservicesConnection extends AbstractConnection {
       return false;
     }
 
-    final DataservicesConnection
-      that = (DataservicesConnection) o;
+    final DataservicesConnection that = (DataservicesConnection) o;
 
     if ( connectionInfo != null ? !connectionInfo.equals( that.connectionInfo ) : that.connectionInfo != null ) {
       return false;
@@ -67,22 +125,5 @@ public class DataservicesConnection extends AbstractConnection {
 
   public int hashCode() {
     return connectionInfo != null ? connectionInfo.hashCode() : 0;
-  }
-
-  @Override
-  public ArrayList<PropertyDescriptor> getProperties() {
-    ArrayList<PropertyDescriptor> properties = new ArrayList<PropertyDescriptor>();
-    properties.add( new PropertyDescriptor( "connectionString", PropertyDescriptor.Type.STRING,
-      PropertyDescriptor.Placement.CHILD ) );
-    return properties;
-  }
-
-  public String getTypeForFile() {
-    return "dataservices.dataservices";
-  }
-
-  public DataservicesConnectionInfo getConnectionInfo() {
-
-    return connectionInfo;
   }
 }

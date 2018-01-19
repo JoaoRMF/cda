@@ -14,25 +14,25 @@
  *  * See the License for the specific language governing permissions and
  *
  */
-
 package pt.webdetails.cda.dataaccess;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dom4j.Element;
 import org.pentaho.reporting.engine.classic.core.DataFactory;
-import org.pentaho.reporting.engine.classic.core.ParameterDataRow;
+import org.pentaho.reporting.engine.classic.core.modules.misc.datafactory.sql.SQLReportDataFactory;
 import pt.webdetails.cda.connections.ConnectionCatalog.ConnectionType;
 import pt.webdetails.cda.connections.InvalidConnectionException;
 import pt.webdetails.cda.connections.dataservices.DataservicesConnection;
 import pt.webdetails.cda.settings.UnknownConnectionException;
 
 /**
- * Todo: Document me!
+ * Implementation of a DataAccess that will get data from a Pentaho Data Service
  */
-public class DataservicesDataAccess extends SimpleDataAccess {
+public class DataservicesDataAccess extends PREDataAccess {
 
   private static final Log logger = LogFactory.getLog( DataservicesDataAccess.class );
+  private static final String TYPE = "dataservices";
 
   public DataservicesDataAccess( final Element element ) {
     super( element );
@@ -42,71 +42,24 @@ public class DataservicesDataAccess extends SimpleDataAccess {
   }
 
   public DataFactory getDataFactory() throws UnknownConnectionException, InvalidConnectionException {
+    logger.debug( "Creating DataServicesDataFactory" );
+
     final DataservicesConnection connection = (DataservicesConnection) getCdaSettings().getConnection( getConnectionId() );
+    final SQLReportDataFactory reportDataFactory = new SQLReportDataFactory( connection.getInitializedConnectionProvider() );
 
-//    final XPathDataFactory dataFactory = new XPathDataFactory();
-//    dataFactory.setXqueryDataFile( connection.get );
+    // using deprecated version for 3.9/3.10 support until it breaks with latest
+    reportDataFactory.setQuery( "query", getQuery() );
+    // reportDataFactory.setQuery("query", getQuery(), null, null);
 
-    // incompatible versions of setQuery in 4.x and 5.x
-//    legacyFallbackInvoke( dataFactory, "setQuery",
-//      new Class<?>[] { String.class, String.class }, new Object[] { "query", getQuery() },
-//      new Class<?>[] { String.class, String.class, boolean.class }, new Object[] { "query", getQuery(), true } );
-//
-//    return dataFactory;
-    return null;
+    return reportDataFactory;
   }
 
-//  private static boolean legacyFallbackInvoke(
-//    Object object, String methodName,
-//    Class<?>[] argTypes, Object[] args,
-//    Class<?>[] argTypesFallback, Object[] argsFallback ) {
-//    Method method = null;
-//    try {
-//      try {
-//        method = object.getClass().getMethod( methodName, argTypes );
-//      } catch ( NoSuchMethodException e1 ) {
-//        logger.debug(
-//          String.format( "failed to find %s(%s): ", methodName, ArrayUtils.toString( argTypes ),
-//            e1.getLocalizedMessage() ) );
-//        try {
-//          method = object.getClass().getMethod( methodName, argTypesFallback );
-//          args = argsFallback;
-//        } catch ( NoSuchMethodException e2 ) {
-//          logger.error(
-//            String.format( "failed to find %1$s(%2$s) or %1$s(%3$s) ",
-//              methodName,
-//              ArrayUtils.toString( argTypes ),
-//              ArrayUtils.toString( argTypesFallback ) ) );
-//          throw e2;
-//        }
-//      }
-//      method.invoke( object, args );
-//      return true;
-//    } catch ( Exception e ) {
-//      logger.error( String.format( "%s call failed ", methodName ), e );
-//    }
-//    return false;
-//  }
-
   public String getType() {
-    return "dataservices";
+    return TYPE;
   }
 
   @Override
   public ConnectionType getConnectionType() {
     return ConnectionType.DATASERVICES;
-  }
-
-  // this change allows xPath parameters parsing
-  @Override
-  protected IDataSourceQuery performRawQuery( ParameterDataRow parameterDataRow ) throws QueryException {
-//    String origQuery = query;
-//
-//    CdaPropertyLookupParser lookupParser = new CdaPropertyLookupParser( parameterDataRow );
-//    query = lookupParser.translateAndLookup( query, parameterDataRow );
-//    IDataSourceQuery dataSourceQuery = super.performRawQuery( parameterDataRow );
-//    query = origQuery;
-//    return ( dataSourceQuery );
-    return null;
   }
 }
