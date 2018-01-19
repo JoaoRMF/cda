@@ -47,7 +47,8 @@ public class DataAccessEnums {
     SCRIPTABLE( "scriptable" ),
     SQL( "sql" ),
     UNION( "union" ),
-    XPATH( "xPath" );
+    XPATH( "xPath" ),
+    DATASERVICES( "dataservices" );
 
     private String type;
 
@@ -85,7 +86,9 @@ public class DataAccessEnums {
 
     XPATH( "xpath.xPath" ),
 
-    KETTLE_TRANS_FROM_FILE( "kettle.TransFromFile" );
+    KETTLE_TRANS_FROM_FILE( "kettle.TransFromFile" ),
+
+    DATASERVICES( "dataservices.DataServices" );
 
     private String[] types;
 

@@ -13,18 +13,12 @@
 
 package pt.webdetails.cda.connections;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dom4j.Document;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
-
 import org.pentaho.di.core.xml.XMLParserFactoryProducer;
 import pt.webdetails.cda.CdaEngine;
 import pt.webdetails.cda.connections.ConnectionCatalog.ConnectionType;
@@ -32,11 +26,16 @@ import pt.webdetails.cpf.repository.api.IBasicFile;
 import pt.webdetails.cpf.repository.api.IReadAccess;
 import pt.webdetails.cpf.repository.util.RepositoryHelper;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 public class ConnectionCatalog {
 
   public enum ConnectionType {
 
-    SQL, MQL, MDX, OLAP4J, SCRIPTING, NONE, XPATH, KETTLE
+    SQL, MQL, MDX, OLAP4J, SCRIPTING, NONE, XPATH, KETTLE, DATASERVICES
   }
 
   private static final String CONN_PATH = "resources/components/connections";
