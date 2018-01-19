@@ -88,7 +88,7 @@ public class DataAccessEnums {
 
     KETTLE_TRANS_FROM_FILE( "kettle.TransFromFile" ),
 
-    DATASERVICES( "dataservices.DataServices" );
+    DATASERVICES( "dataservices.dataservices" );
 
     private String[] types;
 

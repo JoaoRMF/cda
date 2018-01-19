@@ -24,25 +24,25 @@ import org.pentaho.reporting.engine.classic.core.DataFactory;
 import org.pentaho.reporting.engine.classic.core.ParameterDataRow;
 import pt.webdetails.cda.connections.ConnectionCatalog.ConnectionType;
 import pt.webdetails.cda.connections.InvalidConnectionException;
-import pt.webdetails.cda.connections.dataservices.DataServicesConnection;
+import pt.webdetails.cda.connections.dataservices.DataservicesConnection;
 import pt.webdetails.cda.settings.UnknownConnectionException;
 
 /**
  * Todo: Document me!
  */
-public class DataServicesDataAccess extends PREDataAccess {
+public class DataservicesDataAccess extends SimpleDataAccess {
 
-  private static final Log logger = LogFactory.getLog( DataServicesDataAccess.class );
+  private static final Log logger = LogFactory.getLog( DataservicesDataAccess.class );
 
-  public DataServicesDataAccess( final Element element ) {
+  public DataservicesDataAccess( final Element element ) {
     super( element );
   }
 
-  public DataServicesDataAccess() {
+  public DataservicesDataAccess() {
   }
 
   public DataFactory getDataFactory() throws UnknownConnectionException, InvalidConnectionException {
-    final DataServicesConnection connection = (DataServicesConnection) getCdaSettings().getConnection( getConnectionId() );
+    final DataservicesConnection connection = (DataservicesConnection) getCdaSettings().getConnection( getConnectionId() );
 
 //    final XPathDataFactory dataFactory = new XPathDataFactory();
 //    dataFactory.setXqueryDataFile( connection.get );
@@ -89,7 +89,7 @@ public class DataServicesDataAccess extends PREDataAccess {
 //  }
 
   public String getType() {
-    return "dataServices";
+    return "dataservices";
   }
 
   @Override

@@ -32,10 +32,10 @@ package pt.webdetails.cda.connections.dataservices;
 
 import org.dom4j.Element;
 
-public class DataServicesConnectionInfo {
+public class DataservicesConnectionInfo {
   private String dataServicesConnectionString; //????
 
-  public DataServicesConnectionInfo( final Element connection ) {
+  public DataservicesConnectionInfo( final Element connection ) {
     dataServicesConnectionString = ( (String) connection.selectObject( "string(./ConnectionString)" ) );
   }
 
@@ -51,8 +51,8 @@ public class DataServicesConnectionInfo {
       return false;
     }
 
-    final DataServicesConnectionInfo
-      that = (DataServicesConnectionInfo) o;
+    final DataservicesConnectionInfo
+      that = (DataservicesConnectionInfo) o;
 
     if ( dataServicesConnectionString != null ? !dataServicesConnectionString
       .equals( that.dataServicesConnectionString ) : that.dataServicesConnectionString != null ) {

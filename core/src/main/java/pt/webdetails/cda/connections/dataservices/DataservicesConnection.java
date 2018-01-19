@@ -24,15 +24,15 @@ import pt.webdetails.cda.dataaccess.PropertyDescriptor;
 
 import java.util.ArrayList;
 
-public class DataServicesConnection extends AbstractConnection {
+public class DataservicesConnection extends AbstractConnection {
 
-  private DataServicesConnectionInfo connectionInfo;
+  private DataservicesConnectionInfo connectionInfo;
 
-  public DataServicesConnection( final Element connection ) throws InvalidConnectionException {
+  public DataservicesConnection( final Element connection ) throws InvalidConnectionException {
     super( connection );
   }
 
-  public DataServicesConnection() {
+  public DataservicesConnection() {
   }
 
   public ConnectionCatalog.ConnectionType getGenericType() {
@@ -40,7 +40,7 @@ public class DataServicesConnection extends AbstractConnection {
   }
 
   protected void initializeConnection( final Element connection ) throws InvalidConnectionException {
-    connectionInfo = new DataServicesConnectionInfo( connection );
+    connectionInfo = new DataservicesConnectionInfo( connection );
   }
 
   public String getType() {
@@ -55,8 +55,8 @@ public class DataServicesConnection extends AbstractConnection {
       return false;
     }
 
-    final DataServicesConnection
-      that = (DataServicesConnection) o;
+    final DataservicesConnection
+      that = (DataservicesConnection) o;
 
     if ( connectionInfo != null ? !connectionInfo.equals( that.connectionInfo ) : that.connectionInfo != null ) {
       return false;
@@ -78,10 +78,10 @@ public class DataServicesConnection extends AbstractConnection {
   }
 
   public String getTypeForFile() {
-    return "dataservices.DataServices";
+    return "dataservices.dataservices";
   }
 
-  public DataServicesConnectionInfo getConnectionInfo() {
+  public DataservicesConnectionInfo getConnectionInfo() {
 
     return connectionInfo;
   }
