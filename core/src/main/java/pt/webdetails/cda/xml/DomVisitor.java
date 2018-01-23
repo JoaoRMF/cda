@@ -82,8 +82,6 @@ public class DomVisitor {
   // ...dataservices.dataservices
   private void visit( DataservicesConnection con, Element ele ) {
     final DataservicesConnectionInfo conInfo = con.getConnectionInfo();
-    ele.addElement( "Driver" ).addText( conInfo.getDriver() );
-    ele.addElement( "Url" ).addText( conInfo.getUrl() );
   }
 
   // ...metadata.metadata

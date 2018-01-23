@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.dom4j.Element;
 import org.pentaho.reporting.engine.classic.core.modules.misc.datafactory.sql.ConnectionProvider;
 import org.pentaho.reporting.engine.classic.core.modules.misc.datafactory.sql.DriverConnectionProvider;
+import pt.webdetails.cda.CdaEngine;
 import pt.webdetails.cda.connections.AbstractConnection;
 import pt.webdetails.cda.connections.ConnectionCatalog;
 import pt.webdetails.cda.connections.InvalidConnectionException;
@@ -65,9 +66,8 @@ public class DataservicesConnection extends AbstractConnection {
 
     logger.debug( "Creating new dataservices connection" );
 
-    final DriverConnectionProvider connectionProvider = new DriverConnectionProvider();
-    connectionProvider.setDriver( "org.pentaho.di.trans.dataservice.jdbc.ThinDriver" );
-    connectionProvider.setUrl( "jdbc:pdi://localhost:8080/pentaho/kettle?local=true" );
+    IDataservicesLocalConnection dataservicesLocalConnection = CdaEngine.getEnvironment().getDataServicesLocalConnection();
+    final DriverConnectionProvider connectionProvider = dataservicesLocalConnection.getDriverConnectionProvider();
 
     final Properties properties = connectionInfo.getProperties();
     final Enumeration<Object> keys = properties.keys();
@@ -93,8 +93,6 @@ public class DataservicesConnection extends AbstractConnection {
   @Override
   public List<PropertyDescriptor> getProperties() {
     final List<PropertyDescriptor> properties = new ArrayList<PropertyDescriptor>();
-    properties.add(new PropertyDescriptor( "driver", PropertyDescriptor.Type.STRING, PropertyDescriptor.Placement.CHILD ) );
-    properties.add(new PropertyDescriptor( "url", PropertyDescriptor.Type.STRING, PropertyDescriptor.Placement.CHILD ) );
     return properties;
   }
 
