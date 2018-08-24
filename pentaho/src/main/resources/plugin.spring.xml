@@ -17,6 +17,19 @@
     <bean id="api" class="pt.webdetails.cpf.JAXRSCLPluginServlet"/>
     <bean id="cda.api" class="pt.webdetails.cda.CdaUtils" />
 
+    <!-- Websocket configuration bean -->
+    <bean id="corsUtil" class="pt.webdetails.cda.utils.CorsUtil" factory-method="getInstance" />
+    <bean id="cda.plataform.websocket.endpoint.list" class="org.pentaho.platform.web.websocket.EndpointConfig">
+      <constructor-arg>
+          <map>
+            <entry key="query">
+              <value type="java.lang.Class">pt.webdetails.cda.push.CdaPushQuery</value>
+            </entry>
+          </map>
+      </constructor-arg>
+      <constructor-arg value="#{corsUtil.isCorsRequestOriginAllowedPredicate()}" />
+    </bean>
+
     <bean id="cda.edit" class="pt.webdetails.cda.CdaContentGenerator" scope="prototype">
         <property name="edit" value="true" />
     </bean>

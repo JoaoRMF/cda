@@ -1,5 +1,5 @@
 /*!
- * Copyright 2002 - 2017 Webdetails, a Hitachi Vantara company. All rights reserved.
+ * Copyright 2002 - 2018 Webdetails, a Hitachi Vantara company. All rights reserved.
  *
  * This software was developed by Webdetails and is provided under the terms
  * of the Mozilla Public License, Version 2.0, or any later version. You may not use
@@ -13,6 +13,62 @@
 
 package pt.webdetails.cda;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.pentaho.platform.api.engine.ILogger;
+import org.pentaho.platform.api.engine.IParameterProvider;
+import org.pentaho.platform.api.engine.IPentahoSession;
+import org.pentaho.platform.engine.core.solution.SimpleParameterProvider;
+import org.pentaho.platform.engine.core.system.PentahoSessionHolder;
+import org.pentaho.platform.engine.core.system.PentahoSystem;
+import org.pentaho.platform.engine.security.SecurityHelper;
+import org.pentaho.platform.util.logging.SimpleLogger;
+import pt.webdetails.cda.dataaccess.AbstractDataAccess;
+import pt.webdetails.cda.dataaccess.DataAccessConnectionDescriptor;
+import pt.webdetails.cda.exporter.ExportOptions;
+import pt.webdetails.cda.exporter.ExportedQueryResult;
+import pt.webdetails.cda.exporter.Exporter;
+import pt.webdetails.cda.exporter.ExporterException;
+import pt.webdetails.cda.exporter.TableExporter;
+import pt.webdetails.cda.exporter.UnsupportedExporterException;
+import pt.webdetails.cda.services.CacheManager;
+import pt.webdetails.cda.services.Editor;
+import pt.webdetails.cda.services.ExtEditor;
+import pt.webdetails.cda.services.Previewer;
+import pt.webdetails.cda.settings.CdaSettingsReadException;
+import pt.webdetails.cda.utils.CorsUtil;
+import pt.webdetails.cda.utils.DoQueryParameters;
+import pt.webdetails.cda.utils.Messages;
+import pt.webdetails.cpf.PluginEnvironment;
+import pt.webdetails.cpf.audit.CpfAuditHelper;
+import pt.webdetails.cpf.messaging.JsonGeneratorSerializable;
+import pt.webdetails.cpf.messaging.JsonResult;
+import pt.webdetails.cpf.utils.CharsetHelper;
+import pt.webdetails.cpf.utils.JsonHelper;
+import pt.webdetails.cpf.utils.MimeTypes;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -25,70 +81,9 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
-
-import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.MultivaluedMap;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.pentaho.platform.api.engine.ILogger;
-import org.pentaho.platform.api.engine.IParameterProvider;
-import org.pentaho.platform.engine.core.solution.SimpleParameterProvider;
-import org.pentaho.platform.engine.core.system.PentahoSystem;
-import org.apache.commons.lang.StringUtils;
-import org.pentaho.platform.util.logging.SimpleLogger;
-import pt.webdetails.cda.dataaccess.AbstractDataAccess;
-import pt.webdetails.cda.dataaccess.DataAccessConnectionDescriptor;
-import pt.webdetails.cda.exporter.ExportOptions;
-import pt.webdetails.cda.exporter.ExportedQueryResult;
-import pt.webdetails.cda.exporter.Exporter;
-import pt.webdetails.cda.exporter.TableExporter;
-import pt.webdetails.cda.exporter.ExporterException;
-import pt.webdetails.cda.exporter.UnsupportedExporterException;
-import pt.webdetails.cda.services.CacheManager;
-import pt.webdetails.cda.services.Editor;
-import pt.webdetails.cda.services.ExtEditor;
-import pt.webdetails.cda.services.Previewer;
-
-import org.pentaho.platform.api.engine.IPentahoSession;
-
-import org.pentaho.platform.engine.core.system.PentahoSessionHolder;
-import org.pentaho.platform.engine.security.SecurityHelper;
-
-import pt.webdetails.cda.settings.CdaSettingsReadException;
-import pt.webdetails.cda.utils.CorsUtil;
-import pt.webdetails.cda.utils.DoQueryParameters;
-import pt.webdetails.cda.utils.Messages;
-import pt.webdetails.cpf.PluginEnvironment;
-import pt.webdetails.cpf.audit.CpfAuditHelper;
-import pt.webdetails.cpf.messaging.JsonGeneratorSerializable;
-import pt.webdetails.cpf.messaging.JsonResult;
-import pt.webdetails.cpf.utils.CharsetHelper;
-import pt.webdetails.cpf.utils.JsonHelper;
-import pt.webdetails.cpf.utils.MimeTypes;
 
 @Path( "/{plugin}/api" )
 public class CdaUtils {
@@ -171,7 +166,9 @@ public class CdaUtils {
       }
 
       ExportedQueryResult eqr = doQueryInternal( parameters );
-      eqr.writeHeaders( servletResponse );
+      if ( servletResponse != null ) {
+        eqr.writeHeaders( servletResponse );
+      }
       output = toStreamingOutput( eqr );
 
       end = System.currentTimeMillis();
